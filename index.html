@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kenya INGO Registration — Never Settle For Less Foundation</title>
+<meta name="description" content="Working tracker for the Never Settle For Less Foundation's International NGO registration with Kenya's NGO Co-ordination Board." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17231F;
+    --ink-soft:#4A5751;
+    --paper:#F5F3EC;
+    --card:#FFFFFF;
+    --rule:#DCD8CB;
+    --stamp:#4A3B9E;
+    --amber:#A8620F;
+    --filed:#2C7256;
+    --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --body:"Public Sans","Segoe UI",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--body);font-size:16px;line-height:1.5;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+  /* ---------- masthead ---------- */
+  .masthead{background:var(--ink);color:var(--paper);padding:28px 0 22px}
+  .masthead__org{
+    font-family:var(--mono);font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:#9FB3AA;margin:0 0 10px
+  }
+  .masthead__title{
+    font-family:var(--display);font-weight:800;font-size:clamp(26px,5vw,40px);
+    line-height:1.06;letter-spacing:-.02em;margin:0 0 14px;max-width:16ch
+  }
+  .masthead__facts{
+    display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:12px;margin:0 0 22px
+  }
+  .fact{border:1px solid #3B4A44;border-radius:2px;padding:4px 8px;color:#C9D6D0}
+  .fact a{color:inherit}
+
+  /* the ledger: one tick per tracked item */
+  .ledger{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .ledger__count{font-family:var(--mono);font-size:26px;font-weight:600;line-height:1}
+  .ledger__count span{color:#8FA098;font-size:16px}
+  .ledger__label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8FA098}
+  .ticks{display:flex;gap:3px;flex:1 1 260px;min-width:220px}
+  .tick{flex:1;height:22px;background:#2B3833;border-radius:1px;transition:background .25s}
+  .tick[data-s="active"]{background:var(--amber)}
+  .tick[data-s="filed"]{background:#7E6FD6}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{
+    position:sticky;top:0;z-index:5;background:var(--paper);
+    border-bottom:1px solid var(--rule);padding:10px 0
+  }
+  .toolbar__inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .filters{display:flex;gap:4px;flex-wrap:wrap}
+  .btn{
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    background:transparent;color:var(--ink-soft);border:1px solid var(--rule);
+    border-radius:2px;padding:7px 11px;cursor:pointer
+  }
+  .btn:hover{border-color:var(--ink);color:var(--ink)}
+  .btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .btn:focus-visible,.status__btn:focus-visible,.field:focus-visible,a:focus-visible{
+    outline:2px solid var(--stamp);outline-offset:2px
+  }
+  .tools{display:flex;gap:4px;flex-wrap:wrap}
+
+  /* ---------- phases ---------- */
+  .phase{margin:38px 0 0}
+  .phase__head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+  .phase__n{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--stamp)}
+  .phase__title{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.01em;margin:0;flex:1}
+  .phase__count{font-family:var(--mono);font-size:12px;color:var(--ink-soft);white-space:nowrap}
+  .phase__note{color:var(--ink-soft);font-size:14px;margin:10px 0 0;max-width:62ch}
+  .phase__note strong{color:var(--ink)}
+
+  /* ---------- items ---------- */
+  .item{
+    position:relative;background:var(--card);border:1px solid var(--rule);border-top:none;
+    display:grid;grid-template-columns:52px 1fr 210px;gap:0;overflow:hidden
+  }
+  .phase__list{margin-top:0;border-top:1px solid var(--rule)}
+  .item[data-status="filed"]{background:#FBFBF8}
+  .item[data-status="filed"] .item__title{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--rule)}
+  .item__no{
+    font-family:var(--mono);font-size:12px;color:var(--ink-soft);
+    padding:16px 0 0 14px;border-right:1px solid #EFEDE4
+  }
+  .item__body{padding:14px 16px}
+  .item__title{font-family:var(--body);font-weight:600;font-size:15px;margin:0 0 4px}
+  .item__detail{font-size:13.5px;color:var(--ink-soft);margin:0}
+  .item__detail a{color:var(--stamp);text-underline-offset:2px}
+  .item__meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{
+    font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+    background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:2px 6px
+  }
+  .fields{display:flex;gap:6px;margin-top:10px}
+  .field{
+    font-family:var(--body);font-size:13px;color:var(--ink);
+    border:none;border-bottom:1px dashed var(--rule);background:transparent;
+    padding:3px 2px;min-width:0
+  }
+  .field--owner{flex:0 1 130px}
+  .field--note{flex:1 1 auto}
+  .field::placeholder{color:#A9A79B}
+  .field:hover{border-bottom-color:var(--ink-soft)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .status{display:flex;flex-direction:column;gap:4px;padding:14px;border-left:1px solid #EFEDE4}
+  .status__btn{
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    text-align:left;background:transparent;border:1px solid var(--rule);border-radius:2px;
+    padding:6px 9px;cursor:pointer;color:var(--ink-soft)
+  }
+  .status__btn:hover{border-color:var(--ink-soft)}
+  .status__btn[aria-pressed="true"][data-set="todo"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .status__btn[aria-pressed="true"][data-set="active"]{background:var(--amber);border-color:var(--amber);color:#fff}
+  .status__btn[aria-pressed="true"][data-set="filed"]{background:var(--filed);border-color:var(--filed);color:#fff}
+
+  /* signature: the filed stamp */
+  .stamp{
+    position:absolute;right:224px;top:50%;pointer-events:none;
+    font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.18em;
+    color:var(--stamp);border:2.5px solid var(--stamp);border-radius:3px;
+    padding:3px 9px;opacity:0;transform:translateY(-50%) rotate(-9deg) scale(1.5);
+    transition:opacity .18s ease-out,transform .18s ease-out
+  }
+  .item[data-status="filed"] .stamp{opacity:.34;transform:translateY(-50%) rotate(-9deg) scale(1)}
+  .item.is-hidden{display:none}
+  .empty{
+    border:1px dashed var(--rule);padding:22px;text-align:center;color:var(--ink-soft);
+    font-size:14px;margin-top:14px
+  }
+
+  footer{margin:52px 0 40px;padding-top:16px;border-top:1px solid var(--rule);
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);display:flex;
+    flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+  @media (max-width:760px){
+    .item{grid-template-columns:44px 1fr}
+    .item__no{padding-top:14px;padding-left:12px}
+    .status{grid-column:1 / -1;flex-direction:row;border-left:none;border-top:1px solid #EFEDE4;padding:10px 12px}
+    .status__btn{flex:1;text-align:center}
+    .stamp{right:14px;top:18px;transform:rotate(-9deg) scale(1.5)}
+    .item[data-status="filed"] .stamp{transform:rotate(-9deg) scale(1)}
+    .fields{flex-direction:column}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important}
+    .stamp{transform:translateY(-50%) rotate(-9deg) !important}
+  }
+  @media print{
+    .toolbar,.status,.tools{display:none}
+    body{background:#fff}
+    .masthead{background:#fff;color:#000;border-bottom:2px solid #000}
+    .masthead__org,.ledger__label,.fact{color:#000}
+    .item{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="masthead__org">Never Settle For Less Foundation · Tanzania → Kenya</p>
+    <h1 class="masthead__title">International NGO registration</h1>
+    <div class="masthead__facts">
+      <span class="fact"><a href="https://www.ngobureau.go.ke/" target="_blank" rel="noopener">NGO Co-ordination Board</a></span>
+      <span class="fact">90–120 days</span>
+      <span class="fact">KES 31,000 in fees</span>
+    </div>
+    <div class="ledger">
+      <div>
+        <div class="ledger__count"><b id="doneCount">0</b><span>/<b id="totalCount">0</b></span></div>
+        <div class="ledger__label">Filed</div>
+      </div>
+      <div class="ticks" id="ticks" role="img" aria-label="Progress across all tracked items"></div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap toolbar__inner">
+    <div class="filters" role="group" aria-label="Filter items">
+      <button class="btn" data-filter="all" aria-pressed="true">All</button>
+      <button class="btn" data-filter="todo" aria-pressed="false">Not started</button>
+      <button class="btn" data-filter="active" aria-pressed="false">In progress</button>
+      <button class="btn" data-filter="filed" aria-pressed="false">Filed</button>
+    </div>
+    <div class="tools">
+      <button class="btn" id="exportBtn">Export</button>
+      <button class="btn" id="importBtn">Import</button>
+      <button class="btn" id="printBtn">Print</button>
+      <button class="btn" id="resetBtn">Reset</button>
+      <input type="file" id="importFile" accept="application/json" hidden />
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="phases"></main>
+
+<footer class="wrap">
+  <span id="savedAt">Progress saves in this browser</span>
+  <span>Confirm fees and forms on ngobureau.go.ke before paying</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORE = "nsfl-kenya-ingo-v1";
+
+  var PHASES = [
+    {
+      n: "01",
+      title: "Tanzania parent documents",
+      note: "Start here. Every later step attaches a certified copy of something in this phase.",
+      items: [
+        { id: "1.1", title: "Notarized certificate of registration",
+          detail: "Certified and notarised copy of the foundation's Tanzania registration certificate.",
+          href: "https://www.ngobureau.go.ke/registration-requirements/", hrefLabel: "Registration requirements" },
+        { id: "1.2", title: "Constitution / charter",
+          detail: "Certified copy of the governing rules already in force in Tanzania.",
+          href: "https://www.ngobureau.go.ke/acts-regulations/", hrefLabel: "NGO Regulations 1992" },
+        { id: "1.3", title: "Board resolution",
+          detail: "Minutes authorising a Kenya branch, signed by the top three officials.", meta: ["Signed by 3"] },
+        { id: "1.4", title: "Letter of authorisation",
+          detail: "Board letter authorising the application and naming the Kenyan representatives." }
+      ]
+    },
+    {
+      n: "02",
+      title: "Forms and drafting",
+      note: "All forms download from the NGO Bureau. Copy counts matter — the Board rejects short sets.",
+      items: [
+        { id: "2.1", title: "Form 2 — name search and reservation",
+          detail: "Reserve \u201CNever Settle For Less Foundation\u201D. Approval holds for 60 days, so don't file it too early.",
+          href: "https://www.ngobureau.go.ke/downloads/", hrefLabel: "Download forms", meta: ["KES 1,000", "60-day validity"] },
+        { id: "2.2", title: "Form 1 — application",
+          detail: "One original. Needs the Kenya physical address, activity sectors and target counties.",
+          href: "https://www.ngobureau.go.ke/downloads/", hrefLabel: "Download forms", meta: ["1 original"] },
+        { id: "2.3", title: "Form 3 — officials' details",
+          detail: "Chair, Secretary and Treasurer.", meta: ["3 copies"] },
+        { id: "2.4", title: "Addendum to Form 3",
+          detail: "The foreign-organisation addendum. Mandatory for every INGO application.", meta: ["2 copies"] },
+        { id: "2.5", title: "Cover letter",
+          detail: "Addressed to the Executive Director, NGO Co-ordination Board.",
+          href: "https://www.ngobureau.go.ke/contact-us/", hrefLabel: "Board contacts" },
+        { id: "2.6", title: "Proposed Kenya constitution",
+          detail: "Drafted to the 2nd Schedule format, signed on the execution page and initialled on every page. Must carry the dissolution and non-profit clauses.",
+          href: "https://www.ngobureau.go.ke/acts-regulations/", hrefLabel: "2nd Schedule", meta: ["3 copies"] }
+      ]
+    },
+    {
+      n: "03",
+      title: "Board and vetting",
+      note: "At least one of the three top officials, or one third of the full board, must be a Kenyan citizen. Clearances expire after six months — time them to land close to submission.",
+      items: [
+        { id: "3.1", title: "Kenyan officials: IDs and KRA PINs",
+          detail: "National ID copies and KRA PIN certificates for every Kenyan board member.",
+          href: "https://itax.kra.go.ke/", hrefLabel: "KRA iTax" },
+        { id: "3.2", title: "Foreign officials: passports",
+          detail: "Certified, legible copies of valid passports for non-Kenyan board members." },
+        { id: "3.3", title: "DCI certificate of good conduct",
+          detail: "For Kenyan officials, applied for on eCitizen. Must be under six months old at submission.",
+          href: "https://www.ecitizen.go.ke/", hrefLabel: "eCitizen", meta: ["~KES 1,050", "<6 months"] },
+        { id: "3.4", title: "Foreign police clearance",
+          detail: "Notarised clearance from each foreign official's country of residence.", meta: ["<6 months"] },
+        { id: "3.5", title: "Passport photographs",
+          detail: "Two colour photos each, 2x2 inches on white, with the full name and organisation written on the back.",
+          meta: ["Top 3 officials + 2 members"] }
+      ]
+    },
+    {
+      n: "04",
+      title: "Finance and operations",
+      note: "The Board is checking that the Kenya branch can actually run for a year.",
+      items: [
+        { id: "4.1", title: "Year one budget",
+          detail: "Operational and programme budget for Kenya, in KES with USD equivalents." },
+        { id: "4.2", title: "Proof of funds",
+          detail: "Donor letters, grant agreements or MoUs covering the first year." },
+        { id: "4.3", title: "Physical office",
+          detail: "Land or plot reference, lease, or a letter of intent for the Kenya office address." },
+        { id: "4.4", title: "Line ministry",
+          detail: "Confirm which ministry governs the sector — agricultural education and youth work usually sits with Social Protection.",
+          href: "https://www.socialprotection.go.ke/", hrefLabel: "Social Protection" }
+      ]
+    },
+    {
+      n: "05",
+      title: "Filing sequence",
+      note: "Runs in order once the dossier is complete.",
+      items: [
+        { id: "5.1", title: "Submit Form 2", detail: "Name search and reservation.", meta: ["KES 1,000", "1–2 days"] },
+        { id: "5.2", title: "Compile the dossier", detail: "Internal review of every copy and signature before filing." },
+        { id: "5.3", title: "File and pay", detail: "Submit at the Bureau and pay the INGO registration fee.", meta: ["KES 30,000"] },
+        { id: "5.4", title: "Security vetting", detail: "Review by security agencies and the line ministry. Nothing to do but respond to queries.", meta: ["60–90 days"] },
+        { id: "5.5", title: "Sign Form 5C", detail: "Execute the terms governing foreign NGOs and collect the certificate." }
+      ]
+    }
+  ];
+
+  var ALL = [];
+  PHASES.forEach(function (p) { p.items.forEach(function (i) { ALL.push(i.id); }); });
+
+  var state = load();
+  var filter = "all";
+
+  function blank() {
+    var s = {};
+    ALL.forEach(function (id) { s[id] = { status: "todo", owner: "", note: "" }; });
+    return s;
+  }
+
+  function load() {
+    var base = blank();
+    try {
+      var raw = window.localStorage.getItem(STORE);
+      if (!raw) return base;
+      var saved = JSON.parse(raw);
+      Object.keys(base).forEach(function (id) {
+        if (saved[id]) {
+          base[id].status = saved[id].status || "todo";
+          base[id].owner = saved[id].owner || "";
+          base[id].note = saved[id].note || "";
+        }
+      });
+    } catch (e) { /* private mode or no storage — run in memory */ }
+    return base;
+  }
+
+  function save() {
+    try {
+      window.localStorage.setItem(STORE, JSON.stringify(state));
+      document.getElementById("savedAt").textContent =
+        "Saved " + new Date().toLocaleString();
+    } catch (e) {
+      document.getElementById("savedAt").textContent =
+        "Not saving — this browser blocks storage. Use Export to keep progress.";
+    }
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function buildItem(item) {
+    var row = el("div", "item");
+    row.dataset.id = item.id;
+    row.dataset.status = state[item.id].status;
+
+    row.appendChild(el("div", "item__no", item.id));
+
+    var body = el("div", "item__body");
+    body.appendChild(el("h3", "item__title", item.title));
+
+    var det = el("p", "item__detail");
+    det.appendChild(document.createTextNode(item.detail));
+    if (item.href) {
+      det.appendChild(document.createTextNode(" "));
+      var a = el("a", null, item.hrefLabel || "Reference");
+      a.href = item.href; a.target = "_blank"; a.rel = "noopener";
+      det.appendChild(a);
+    }
+    body.appendChild(det);
+
+    if (item.meta) {
+      var meta = el("div", "item__meta");
+      item.meta.forEach(function (m) { meta.appendChild(el("span", "chip", m)); });
+      body.appendChild(meta);
+    }
+
+    var fields = el("div", "fields");
+    fields.appendChild(makeField(item.id, "owner", "Owner", "field field--owner"));
+    fields.appendChild(makeField(item.id, "note", "Note", "field field--note"));
+    body.appendChild(fields);
+    row.appendChild(body);
+
+    var status = el("div", "status");
+    [["todo", "Not started"], ["active", "In progress"], ["filed", "Filed"]].forEach(function (s) {
+      var b = el("button", "status__btn", s[1]);
+      b.type = "button";
+      b.dataset.set = s[0];
+      b.dataset.id = item.id;
+      b.setAttribute("aria-pressed", String(state[item.id].status === s[0]));
+      status.appendChild(b);
+    });
+    row.appendChild(status);
+
+    row.appendChild(el("span", "stamp", "FILED"));
+    return row;
+  }
+
+  function makeField(id, key, label, cls) {
+    var wrapEl = document.createDocumentFragment();
+    var lab = el("label", "sr", label + " for item " + id);
+    lab.htmlFor = "f-" + key + "-" + id;
+    var input = el("input", cls);
+    input.id = "f-" + key + "-" + id;
+    input.type = "text";
+    input.placeholder = label;
+    input.value = state[id][key];
+    input.dataset.id = id;
+    input.dataset.key = key;
+    wrapEl.appendChild(lab);
+    wrapEl.appendChild(input);
+    return wrapEl;
+  }
+
+  function render() {
+    var root = document.getElementById("phases");
+    root.textContent = "";
+
+    PHASES.forEach(function (p) {
+      var sec = el("section", "phase");
+      var head = el("div", "phase__head");
+      head.appendChild(el("span", "phase__n", p.n));
+      head.appendChild(el("h2", "phase__title", p.title));
+      var count = el("span", "phase__count");
+      count.dataset.phase = p.n;
+      head.appendChild(count);
+      sec.appendChild(head);
+      if (p.note) sec.appendChild(el("p", "phase__note", p.note));
+
+      var list = el("div", "phase__list");
+      p.items.forEach(function (i) { list.appendChild(buildItem(i)); });
+      sec.appendChild(list);
+      root.appendChild(sec);
+    });
+
+    var empty = el("p", "empty", "Nothing in this view. Try another filter.");
+    empty.id = "emptyMsg";
+    empty.style.display = "none";
+    root.appendChild(empty);
+
+    var ticks = document.getElementById("ticks");
+    ALL.forEach(function (id) {
+      var t = el("span", "tick");
+      t.dataset.for = id;
+      ticks.appendChild(t);
+    });
+    document.getElementById("totalCount").textContent = ALL.length;
+
+    refresh();
+  }
+
+  function refresh() {
+    var done = 0, visible = 0;
+
+    ALL.forEach(function (id) {
+      var st = state[id].status;
+      if (st === "filed") done++;
+      var tick = document.querySelector('.tick[data-for="' + id + '"]');
+      if (tick) tick.dataset.s = st;
+      var row = document.querySelector('.item[data-id="' + id + '"]');
+      if (row) {
+        row.dataset.status = st;
+        var hide = filter !== "all" && filter !== st;
+        row.classList.toggle("is-hidden", hide);
+        if (!hide) visible++;
+        row.querySelectorAll(".status__btn").forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b.dataset.set === st));
+        });
+      }
+    });
+
+    document.getElementById("doneCount").textContent = done;
+    document.getElementById("emptyMsg").style.display = visible ? "none" : "block";
+
+    PHASES.forEach(function (p) {
+      var d = p.items.filter(function (i) { return state[i.id].status === "filed"; }).length;
+      var c = document.querySelector('.phase__count[data-phase="' + p.n + '"]');
+      if (c) c.textContent = d + "/" + p.items.length;
+    });
+  }
+
+  // ---------- events ----------
+  document.getElementById("phases").addEventListener("click", function (e) {
+    var b = e.target.closest(".status__btn");
+    if (!b) return;
+    state[b.dataset.id].status = b.dataset.set;
+    refresh();
+    save();
+  });
+
+  document.getElementById("phases").addEventListener("input", function (e) {
+    var f = e.target.closest(".field");
+    if (!f) return;
+    state[f.dataset.id][f.dataset.key] = f.value;
+    save();
+  });
+
+  document.querySelectorAll("[data-filter]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      filter = b.dataset.filter;
+      document.querySelectorAll("[data-filter]").forEach(function (o) {
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+      refresh();
+    });
+  });
+
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    if (!window.confirm("Clear all statuses, owners and notes?")) return;
+    state = blank();
+    document.querySelectorAll(".field").forEach(function (f) { f.value = ""; });
+    refresh();
+    save();
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    var payload = { store: STORE, exported: new Date().toISOString(), state: state };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "kenya-ingo-progress.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("importBtn").addEventListener("click", function () {
+    document.getElementById("importFile").click();
+  });
+
+  document.getElementById("importFile").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = JSON.parse(reader.result);
+        var incoming = data.state || data;
+        Object.keys(state).forEach(function (id) {
+          if (incoming[id]) {
+            state[id].status = incoming[id].status || "todo";
+            state[id].owner = incoming[id].owner || "";
+            state[id].note = incoming[id].note || "";
+          }
+        });
+        document.querySelectorAll(".field").forEach(function (f) {
+          f.value = state[f.dataset.id][f.dataset.key];
+        });
+        refresh();
+        save();
+      } catch (err) {
+        window.alert("That file isn't a progress export. Pick the kenya-ingo-progress.json file.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
