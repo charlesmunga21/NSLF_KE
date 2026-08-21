@@ -115,7 +115,33 @@
   .field--note{flex:1 1 auto}
   .field::placeholder{color:#A9A79B}
   .field:hover{border-bottom-color:var(--ink-soft)}
+  select.field{
+    -webkit-appearance:none;appearance:none;border-radius:0;padding-right:14px;cursor:pointer;
+    background-image:linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%),
+      linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+    background-position:calc(100% - 6px) 55%, calc(100% - 2px) 55%;
+    background-size:4px 4px, 4px 4px;background-repeat:no-repeat
+  }
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* ---------- document upload ---------- */
+  .doc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .doc__addbtn{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    background:transparent;color:var(--stamp);border:1px dashed var(--rule);border-radius:2px;
+    padding:5px 9px;cursor:pointer
+  }
+  .doc__addbtn:hover{border-color:var(--stamp)}
+  .doc__hint{font-size:12px;color:var(--ink-soft);flex:1 1 100%}
+  .doc__field{flex:1 1 220px}
+  .doc__drivelink{font-family:var(--mono);font-size:11px;color:var(--stamp);white-space:nowrap}
+  .doc__link{font-family:var(--body);font-size:13px;color:var(--stamp);text-decoration:underline;text-underline-offset:2px}
+  .doc__replace,.doc__remove{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+    background:transparent;border:none;color:var(--ink-soft);cursor:pointer;padding:2px 4px;
+    text-decoration:underline;text-underline-offset:2px
+  }
+  .doc__remove{color:var(--amber)}
 
   .status{display:flex;flex-direction:column;gap:4px;padding:14px;border-left:1px solid #EFEDE4}
   .status__btn{
@@ -328,15 +354,18 @@
     }
   ];
 
+  var OWNERS = ["Charles", "Anthony", "Florence", "Atong"];
+
   var ALL = [];
   PHASES.forEach(function (p) { p.items.forEach(function (i) { ALL.push(i.id); }); });
 
   var state = load();
   var filter = "all";
+  var docEditing = {}; // transient per-item UI state, not persisted
 
   function blank() {
     var s = {};
-    ALL.forEach(function (id) { s[id] = { status: "todo", owner: "", note: "" }; });
+    ALL.forEach(function (id) { s[id] = { status: "todo", owner: "", note: "", doc: "" }; });
     return s;
   }
 
@@ -351,6 +380,7 @@
           base[id].status = saved[id].status || "todo";
           base[id].owner = saved[id].owner || "";
           base[id].note = saved[id].note || "";
+          base[id].doc = saved[id].doc || "";
         }
       });
     } catch (e) { /* private mode or no storage — run in memory */ }
@@ -395,11 +425,17 @@
       state[id].status = items[id].status || "todo";
       state[id].owner = items[id].owner || "";
       state[id].note = items[id].note || "";
+      state[id].doc = items[id].doc || "";
     });
     document.querySelectorAll(".field").forEach(function (f) {
       if (document.activeElement === f) return; // don't clobber what someone is typing
       var v = state[f.dataset.id][f.dataset.key];
       if (f.value !== v) f.value = v;
+    });
+    document.querySelectorAll(".doc").forEach(function (c) {
+      var id = c.dataset.id;
+      if (docEditing[id]) return; // don't clobber someone mid-paste
+      paintDoc(c, id);
     });
     try { window.localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* ignore */ }
     refresh();
@@ -464,9 +500,11 @@
     }
 
     var fields = el("div", "fields");
-    fields.appendChild(makeField(item.id, "owner", "Owner", "field field--owner"));
+    fields.appendChild(makeOwnerSelect(item.id));
     fields.appendChild(makeField(item.id, "note", "Note", "field field--note"));
     body.appendChild(fields);
+
+    body.appendChild(buildDocRow(item.id));
     row.appendChild(body);
 
     var status = el("div", "status");
@@ -498,6 +536,90 @@
     wrapEl.appendChild(lab);
     wrapEl.appendChild(input);
     return wrapEl;
+  }
+
+  function makeOwnerSelect(id) {
+    var wrapEl = document.createDocumentFragment();
+    var lab = el("label", "sr", "Owner for item " + id);
+    lab.htmlFor = "f-owner-" + id;
+    var select = el("select", "field field--owner");
+    select.id = "f-owner-" + id;
+    select.dataset.id = id;
+    select.dataset.key = "owner";
+
+    var blankOpt = el("option", null, "— Unassigned —");
+    blankOpt.value = "";
+    select.appendChild(blankOpt);
+    OWNERS.forEach(function (name) {
+      var opt = el("option", null, name);
+      opt.value = name;
+      select.appendChild(opt);
+    });
+    select.value = state[id].owner;
+
+    wrapEl.appendChild(lab);
+    wrapEl.appendChild(select);
+    return wrapEl;
+  }
+
+  function buildDocRow(id) {
+    var wrap = el("div", "doc");
+    wrap.dataset.id = id;
+    paintDoc(wrap, id);
+    return wrap;
+  }
+
+  function paintDoc(container, id) {
+    container.textContent = "";
+    var docUrl = state[id].doc;
+    var editing = docEditing[id];
+
+    if (docUrl && !editing) {
+      var link = el("a", "doc__link", "📎 View document");
+      link.href = docUrl; link.target = "_blank"; link.rel = "noopener";
+      container.appendChild(link);
+
+      var replace = el("button", "doc__replace", "Replace");
+      replace.type = "button";
+      replace.dataset.docAction = "edit";
+      replace.dataset.id = id;
+      container.appendChild(replace);
+
+      var remove = el("button", "doc__remove", "Remove");
+      remove.type = "button";
+      remove.dataset.docAction = "remove";
+      remove.dataset.id = id;
+      container.appendChild(remove);
+      return;
+    }
+
+    if (!docUrl && !editing) {
+      var addBtn = el("button", "doc__addbtn", "↑ Upload document");
+      addBtn.type = "button";
+      addBtn.dataset.docAction = "edit";
+      addBtn.dataset.id = id;
+      container.appendChild(addBtn);
+      return;
+    }
+
+    // editing: paste the shared-drive link once the file is uploaded there
+    container.appendChild(el("span", "doc__hint",
+      "Upload the file to the team's shared Google Drive folder, turn on link sharing, then paste the link here."));
+
+    var input = el("input", "field doc__field");
+    input.type = "url";
+    input.placeholder = "Paste Google Drive link";
+    input.value = docUrl || "";
+    input.dataset.id = id;
+    input.dataset.key = "doc";
+    container.appendChild(input);
+
+    var drive = el("a", "doc__drivelink", "Open Drive ↗");
+    drive.href = "https://drive.google.com/drive/my-drive";
+    drive.target = "_blank"; drive.rel = "noopener";
+    container.appendChild(drive);
+
+    setTimeout(function () { input.focus(); }, 0);
   }
 
   function render() {
@@ -570,17 +692,53 @@
   // ---------- events ----------
   document.getElementById("phases").addEventListener("click", function (e) {
     var b = e.target.closest(".status__btn");
-    if (!b) return;
-    state[b.dataset.id].status = b.dataset.set;
-    refresh();
-    save();
+    if (b) {
+      state[b.dataset.id].status = b.dataset.set;
+      refresh();
+      save();
+      return;
+    }
+
+    var docBtn = e.target.closest("[data-doc-action]");
+    if (docBtn) {
+      var id = docBtn.dataset.id;
+      var container = docBtn.closest(".doc");
+      if (docBtn.dataset.docAction === "edit") {
+        docEditing[id] = true;
+        paintDoc(container, id);
+      } else if (docBtn.dataset.docAction === "remove") {
+        if (window.confirm("Remove the document link for this item?")) {
+          state[id].doc = "";
+          docEditing[id] = false;
+          paintDoc(container, id);
+          save();
+        }
+      }
+    }
   });
 
-  document.getElementById("phases").addEventListener("input", function (e) {
+  function handleFieldChange(e) {
     var f = e.target.closest(".field");
     if (!f) return;
     state[f.dataset.id][f.dataset.key] = f.value;
     save();
+  }
+  document.getElementById("phases").addEventListener("input", handleFieldChange);
+  document.getElementById("phases").addEventListener("change", handleFieldChange);
+
+  document.getElementById("phases").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.classList.contains("doc__field")) {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+
+  document.getElementById("phases").addEventListener("focusout", function (e) {
+    var f = e.target.closest(".doc__field");
+    if (!f) return;
+    var id = f.dataset.id;
+    docEditing[id] = false;
+    paintDoc(f.closest(".doc"), id);
   });
 
   document.querySelectorAll("[data-filter]").forEach(function (b) {
@@ -596,9 +754,11 @@
   document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
 
   document.getElementById("resetBtn").addEventListener("click", function () {
-    if (!window.confirm("Clear all statuses, owners and notes?")) return;
+    if (!window.confirm("Clear all statuses, owners, notes and document links?")) return;
     state = blank();
+    docEditing = {};
     document.querySelectorAll(".field").forEach(function (f) { f.value = ""; });
+    document.querySelectorAll(".doc").forEach(function (c) { paintDoc(c, c.dataset.id); });
     refresh();
     save();
   });
@@ -633,11 +793,14 @@
             state[id].status = incoming[id].status || "todo";
             state[id].owner = incoming[id].owner || "";
             state[id].note = incoming[id].note || "";
+            state[id].doc = incoming[id].doc || "";
           }
         });
+        docEditing = {};
         document.querySelectorAll(".field").forEach(function (f) {
           f.value = state[f.dataset.id][f.dataset.key];
         });
+        document.querySelectorAll(".doc").forEach(function (c) { paintDoc(c, c.dataset.id); });
         refresh();
         save();
       } catch (err) {

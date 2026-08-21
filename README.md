@@ -36,6 +36,12 @@ Either way:
 
 **Email alerts on change**: get an email digest whenever a status changes, using a free Google Apps Script poll — no paid backend needed. See **[ALERTS.md](ALERTS.md)**.
 
+## Assigning owners and uploading documents
+
+Each item has an **Owner** dropdown (Charles, Anthony, Florence, Atong, or Unassigned) instead of a free-text field, so assignments stay consistent across the team. The list lives in the `OWNERS` array near the top of the `<script>` block in `index.html` — edit it there to add or rename members.
+
+Each item also has an **↑ Upload document** control. There's no paid file-storage backend behind this dashboard, so it doesn't accept files directly: clicking it opens a field to paste a shareable Google Drive link once the assigned person has uploaded the file to the team's shared Drive folder (a convenience **Open Drive ↗** link is provided). Once a link is saved, the item shows **📎 View document**, with **Replace** and **Remove** to update or clear it. Like owner and status, the link syncs live with everyone if shared sync is on.
+
 ## Editing the content
 
 All 24 items live in the `PHASES` array near the top of the `<script>` block in `index.html`. Each item takes:
