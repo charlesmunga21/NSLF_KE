@@ -24,9 +24,9 @@ git push -u origin main
 
 ## How progress is stored
 
-By default, each person's statuses, owners and notes save to their own browser (`localStorage`) — there's no shared backend, so nobody sees anyone else's edits.
+This dashboard is wired to a free Firebase (Spark plan) project (`nslf-ingo`), so every member's status, owner and note changes sync live across everyone viewing the board — no reload needed, no card on file. The footer at the bottom of the page reads **"Synced live"** to confirm it.
 
-**Shared live sync (recommended for a team)**: wire up a free Firebase project (no card required) so everyone sees the same board update in real time. See **[SETUP.md](SETUP.md)** — it's about 10 minutes, one-time. Until it's set up, the dashboard runs local-only and works exactly as before.
+If you're reusing this repo as a template for another board, a fresh copy has no Firebase project attached yet and falls back to per-browser (`localStorage`) storage until you connect one. See **[SETUP.md](SETUP.md)** for the one-time, ~10 minute setup.
 
 Either way:
 
@@ -34,7 +34,7 @@ Either way:
 - **Import** loads someone else's export over your copy.
 - **Print** produces a clean board-ready sheet with the controls stripped out.
 
-**Email alerts on change**: with sync on, you can also get an email digest whenever a status changes — no paid backend needed. See **[ALERTS.md](ALERTS.md)**.
+**Email alerts on change**: get an email digest whenever a status changes, using a free Google Apps Script poll — no paid backend needed. See **[ALERTS.md](ALERTS.md)**.
 
 ## Editing the content
 
