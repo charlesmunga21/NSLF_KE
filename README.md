@@ -34,6 +34,8 @@ Either way:
 - **Import** loads someone else's export over your copy.
 - **Print** produces a clean board-ready sheet with the controls stripped out.
 
+**Email alerts on change**: with sync on, you can also get an email digest whenever a status changes — no paid backend needed. See **[ALERTS.md](ALERTS.md)**.
+
 ## Editing the content
 
 All 24 items live in the `PHASES` array near the top of the `<script>` block in `index.html`. Each item takes:
