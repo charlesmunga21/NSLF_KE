@@ -226,16 +226,13 @@
 
   var STORE = "nsfl-kenya-ingo-v1";
 
-  // ---- SETUP REQUIRED for shared sync — see SETUP.md ----
-  // Fill these in from Firebase console → Project settings → Your apps → Web app.
-  // Until then, the board runs local-only (same as before): each browser keeps its own copy.
   var firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCUyOC8cqob7L2PtCnH-8Anu77cbRFZwu4",
+    authDomain: "nslf-ingo.firebaseapp.com",
+    projectId: "nslf-ingo",
+    storageBucket: "nslf-ingo.firebasestorage.app",
+    messagingSenderId: "915355817482",
+    appId: "1:915355817482:web:4c69b4b25bab746dbbf1f3"
   };
   var SYNC_ENABLED = firebaseConfig.apiKey.indexOf("YOUR_") !== 0;
   var db = null, boardRef = null, saveTimer = null;
