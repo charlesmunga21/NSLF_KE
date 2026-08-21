@@ -45,7 +45,7 @@ All 24 items live in the `PHASES` array near the top of the `<script>` block in 
   id: "2.1",
   title: "Form 2 — name search and reservation",
   detail: "What has to happen, in plain terms.",
-  href: "https://www.ngobureau.go.ke/downloads/",   // optional
+  href: "https://pbora.go.ke/register-pbo",   // optional
   hrefLabel: "Download forms",                       // optional
   meta: ["KES 1,000", "60-day validity"]             // optional chips
 }
@@ -55,5 +55,5 @@ Add or remove items freely — the progress ledger, phase counts and filters all
 
 ## Notes
 
-- Fees and form numbers change. Confirm current figures on [ngobureau.go.ke](https://www.ngobureau.go.ke/) before paying anything.
+- Fees and form numbers change. Confirm current figures on [pbora.go.ke](https://pbora.go.ke/register-pbo) before paying anything.
 - Fonts load from Google Fonts. If the team works offline, download Archivo, Public Sans and IBM Plex Mono into the repo and swap the `<link>` for local `@font-face` rules.
