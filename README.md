@@ -42,6 +42,22 @@ Each item has an **Owner** dropdown (Charles, Anthony, Florence, Atong, or Unass
 
 Each item also has an **↑ Upload document** control. There's no paid file-storage backend behind this dashboard, so it doesn't accept files directly: clicking it opens a field to paste a shareable Google Drive link once the assigned person has uploaded the file to the team's shared Drive folder (a convenience **Open Drive ↗** link is provided). Once a link is saved, the item shows **📎 View document**, with **Replace** and **Remove** to update or clear it. Like owner and status, the link syncs live with everyone if shared sync is on.
 
+**Filed requires a document.** Clicking **Filed** on an item with no document attached shows an explanation instead of changing the status — the button gets a dashed border as a visual hint before you even click it. Removing a document from an item that's already Filed moves it back to In progress automatically, since Filed is meant to mean "here's the proof," not just "done."
+
+## Expiry tracking
+
+Three items carry a hard validity window: the Form 2 name reservation (60 days) and the DCI and foreign police clearances (6 months each — they have to be dated within six months of submission, not just "obtained at some point"). Those items get an extra date field — **Approved** for the reservation, **Issued** for the clearances — plus a computed badge:
+
+- More than 14 days left: **Valid to `<date>`**
+- 14 days or fewer: **Expires in `N`d** (amber)
+- Past the window: **Expired `N`d ago** (red)
+
+The badge recalculates on every page load, so it stays accurate even if nobody touches the item for weeks. To add expiry tracking to another item, give it `expiryDays` (and optionally `expiryLabel`, which defaults to "Started") in its entry in the `PHASES` array.
+
+## Light / dark mode
+
+The **☀/🌙** button in the toolbar switches themes; the choice is remembered per-browser (`localStorage`, not synced across the team) and otherwise follows the system's light/dark setting on first visit. The masthead band stays a fixed dark "stamped ink" color in both themes by design — only the page, cards and text invert.
+
 ## Editing the content
 
 All 24 items live in the `PHASES` array near the top of the `<script>` block in `index.html`. Each item takes:
