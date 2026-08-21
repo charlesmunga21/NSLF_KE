@@ -215,11 +215,30 @@
   <span>Confirm fees and forms on ngobureau.go.ke before paying</span>
 </footer>
 
+<!-- Free-tier Firebase (Spark plan, no card required). See SETUP.md to turn on shared live sync. -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
 <script>
 (function () {
   "use strict";
 
   var STORE = "nsfl-kenya-ingo-v1";
+
+  // ---- SETUP REQUIRED for shared sync — see SETUP.md ----
+  // Fill these in from Firebase console → Project settings → Your apps → Web app.
+  // Until then, the board runs local-only (same as before): each browser keeps its own copy.
+  var firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  var SYNC_ENABLED = firebaseConfig.apiKey.indexOf("YOUR_") !== 0;
+  var db = null, boardRef = null, saveTimer = null;
 
   var PHASES = [
     {
@@ -341,15 +360,77 @@
     return base;
   }
 
+  function setSyncStatus(text) {
+    document.getElementById("savedAt").textContent = text;
+  }
+
   function save() {
-    try {
-      window.localStorage.setItem(STORE, JSON.stringify(state));
-      document.getElementById("savedAt").textContent =
-        "Saved " + new Date().toLocaleString();
-    } catch (e) {
-      document.getElementById("savedAt").textContent =
-        "Not saving — this browser blocks storage. Use Export to keep progress.";
+    // always keep a local cache, so a reload mid-flight isn't blank
+    try { window.localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* ignore */ }
+
+    if (!SYNC_ENABLED) {
+      setSyncStatus("Saved " + new Date().toLocaleString() + " (this browser only)");
+      return;
     }
+    if (!boardRef) {
+      setSyncStatus("Not connected — saved to this browser only");
+      return;
+    }
+    // debounce so a run of keystrokes doesn't fire a write per character
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      boardRef.set(
+        { items: state, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+        { merge: true }
+      ).then(function () {
+        setSyncStatus("Synced " + new Date().toLocaleTimeString());
+      }).catch(function (err) {
+        console.error(err);
+        setSyncStatus("Sync failed — check connection (saved to this browser)");
+      });
+    }, 500);
+  }
+
+  function applyRemoteState(items) {
+    if (!items) return;
+    ALL.forEach(function (id) {
+      if (!items[id]) return;
+      state[id].status = items[id].status || "todo";
+      state[id].owner = items[id].owner || "";
+      state[id].note = items[id].note || "";
+    });
+    document.querySelectorAll(".field").forEach(function (f) {
+      if (document.activeElement === f) return; // don't clobber what someone is typing
+      var v = state[f.dataset.id][f.dataset.key];
+      if (f.value !== v) f.value = v;
+    });
+    try { window.localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* ignore */ }
+    refresh();
+  }
+
+  function initFirebase() {
+    setSyncStatus("Connecting to shared board…");
+    var app = firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    boardRef = db.collection("boards").doc("kenya-ingo");
+
+    firebase.auth().signInAnonymously().catch(function (err) {
+      console.error(err);
+      setSyncStatus("Sync unavailable — working in this browser only");
+    });
+
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (!user) return;
+      boardRef.onSnapshot(function (snap) {
+        var data = snap.data();
+        if (data && data.items) applyRemoteState(data.items);
+        setSyncStatus((snap.metadata.hasPendingWrites ? "Saving…" : "Synced live") +
+          " · " + new Date().toLocaleTimeString());
+      }, function (err) {
+        console.error(err);
+        setSyncStatus("Sync error — check Firestore rules / connection");
+      });
+    });
   }
 
   function el(tag, cls, text) {
@@ -570,7 +651,9 @@
     e.target.value = "";
   });
 
+  setSyncStatus(SYNC_ENABLED ? "Connecting to shared board…" : "Progress saves in this browser only (shared sync not configured — see SETUP.md)");
   render();
+  if (SYNC_ENABLED) initFirebase();
 })();
 </script>
 </body>

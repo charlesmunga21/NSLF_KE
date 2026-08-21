@@ -24,13 +24,15 @@ git push -u origin main
 
 ## How progress is stored
 
-Each person's statuses, owners and notes save to their own browser (`localStorage`). There is no shared backend, so:
+By default, each person's statuses, owners and notes save to their own browser (`localStorage`) — there's no shared backend, so nobody sees anyone else's edits.
 
-- **Export** downloads `kenya-ingo-progress.json`.
+**Shared live sync (recommended for a team)**: wire up a free Firebase project (no card required) so everyone sees the same board update in real time. See **[SETUP.md](SETUP.md)** — it's about 10 minutes, one-time. Until it's set up, the dashboard runs local-only and works exactly as before.
+
+Either way:
+
+- **Export** downloads `kenya-ingo-progress.json` (handy as a manual backup even with sync on).
 - **Import** loads someone else's export over your copy.
 - **Print** produces a clean board-ready sheet with the controls stripped out.
-
-If the team needs live shared state instead of passing a file around, that needs a backend — Firebase, Supabase, or a GitHub Actions workflow committing the JSON back to the repo. Say the word and it can be added.
 
 ## Editing the content
 
